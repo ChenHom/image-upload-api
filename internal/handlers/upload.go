@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"image-upload-api/internal/services"
 	"io"
 	"mime/multipart"
@@ -50,15 +52,19 @@ func (h *UploadHandler) HandleUpload(c *gin.Context) {
 		return
 	}
 
+	// 計算檔案指紋
+	hash := sha256.Sum256(fileBytes)
+	fileFingerprint := hex.EncodeToString(hash[:])
+
 	// 儲存檔案
-	err = h.StorageService.SaveToLocal(file.Filename, fileBytes)
+	err = h.StorageService.SaveToLocal(fileFingerprint, fileBytes)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "檔案儲存失敗"})
 		return
 	}
 
 	// 異步處理圖檔
-	go h.AIProcessingService.ProcessImage(context.Background(), file.Filename)
+	go h.AIProcessingService.ProcessImage(context.Background(), fileFingerprint)
 
 	c.JSON(http.StatusOK, gin.H{"message": "檔案上傳成功"})
 }

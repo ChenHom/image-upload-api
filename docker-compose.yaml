@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - MODE=${MODE:-production}
     container_name: go-app
     platform: linux/amd64
     ports:
