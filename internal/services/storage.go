@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type StorageService struct {
@@ -13,7 +15,7 @@ func NewStorageService(storagePath string) *StorageService {
 	return &StorageService{storagePath: storagePath}
 }
 
-func (s *StorageService) SaveToLocal(fileName string, data []byte) error {
+func (s *StorageService) SaveToLocal(fileFingerprint, ext string, data []byte) error {
 	if len(data) > 5*1024*1024 { // 檔案大小檢查，限制最大 5 MB
 		return errors.New("檔案大小超過限制")
 	}
@@ -25,7 +27,10 @@ func (s *StorageService) SaveToLocal(fileName string, data []byte) error {
 		}
 	}
 
-	filePath := s.storagePath + "/" + fileName
+	// 保留原本的副檔名
+	filePath := filepath.Join(s.storagePath, fileFingerprint+ext)
+	fmt.Printf("儲存 %s\n", fileFingerprint+ext)
+	fmt.Printf("儲存檔案到 %s\n", filePath)
 	return os.WriteFile(filePath, data, 0644)
 }
 
